@@ -1,0 +1,249 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  user_freela
+  user_empresa
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum WorkModel {
+  REMOTO
+  HIBRIDO
+  PRESENCIAL
+}
+
+enum JobStatus {
+  ABERTO
+  EM_ANDAMENTO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum ProposalStatus {
+  ENVIADA
+  ACEITA
+  RECUSADA
+  CANCELADA
+}
+
+enum AddressOwnerType {
+  FREELA
+  EMPRESA
+}
+
+enum CompanyPermission {
+  OWNER
+  RECRUITER
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  role             UserRole
+  status           UserStatus @default(ACTIVE)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  freelaProfile    FreelaProfile?
+  empresaProfile   EmpresaProfile?
+
+  passwordResets   PasswordResetToken[]
+  jobPosts         JobPost[] @relation("CompanyJobs")
+  jobProposals     JobProposal[] @relation("FreelaProposals")
+  notifications    Notification[]
+  addresses        Address[]
+
+  companyMembersAsCompany CompanyMember[] @relation("CompanyMemberCompany")
+  companyMembersAsMember  CompanyMember[] @relation("CompanyMemberUser")
+
+  @@map("users")
+}
+
+model FreelaProfile {
+  userId      String @id @map("user_id")
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  nome        String @map("nome")
+  cpf         String @unique
+  bio         String?
+  disponivel  Boolean @default(true) @map("disponivel")
+  nivel       String? @map("nivel")
+  avatarUrl   String? @map("avatar_url")
+  linkedinUrl String? @map("linkedin_url")
+  githubUrl   String? @map("github_url")
+
+  resumes     FreelaResume[]
+  services    ServicePost[]
+
+  @@map("freela_profiles")
+}
+
+model EmpresaProfile {
+  userId       String @id @map("user_id")
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  razaoSocial  String @map("razao_social")
+  nomeFantasia String @map("nome_fantasia")
+  cnpj         String @unique
+  sobre        String? @map("sobre")
+  logoUrl      String? @map("logo_url")
+  siteUrl      String? @map("site_url")
+
+  @@map("empresa_profiles")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model Address {
+  id          String           @id @default(uuid())
+  ownerType   AddressOwnerType @map("owner_type")
+  ownerUserId String           @map("owner_user_id")
+  owner       User             @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  cep         String
+  logradouro  String?
+  numero      String?
+  bairro      String?
+  cidade      String?
+  uf          String?
+  complemento String?
+
+  lat         Float?
+  lng         Float?
+  geocodedAt  DateTime? @map("geocoded_at")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([ownerType, ownerUserId])
+  @@index([ownerUserId])
+  @@map("addresses")
+}
+
+model JobPost {
+  id               String    @id @default(uuid())
+  empresaUserId    String    @map("empresa_user_id")
+  empresaUser      User      @relation("CompanyJobs", fields: [empresaUserId], references: [id], onDelete: Cascade)
+
+  titulo           String    @map("titulo")
+  descricao        String    @map("descricao")
+  prazo            DateTime? @map("prazo")
+  orcamentoMinCents Int?     @map("orcamento_min_cents")
+  orcamentoMaxCents Int?     @map("orcamento_max_cents")
+  modeloTrabalho   WorkModel @map("modelo_trabalho")
+  status           JobStatus @default(ABERTO)
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  proposals        JobProposal[]
+
+  @@index([empresaUserId])
+  @@map("job_posts")
+}
+
+model JobProposal {
+  id                String         @id @default(uuid())
+  jobPostId          String         @map("job_post_id")
+  jobPost            JobPost        @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+
+  freelaUserId       String         @map("freela_user_id")
+  freelaUser         User           @relation("FreelaProposals", fields: [freelaUserId], references: [id], onDelete: Cascade)
+
+  mensagem           String         @map("mensagem")
+  valorPropostoCents Int?           @map("valor_proposto_cents")
+  prazoPropostoDias  Int?           @map("prazo_proposto_dias")
+  status             ProposalStatus @default(ENVIADA)
+
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+
+  @@unique([jobPostId, freelaUserId])
+  @@index([freelaUserId])
+  @@map("job_proposals")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  payload   Json     @map("payload_json")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model FreelaResume {
+  id         String   @id @default(uuid())
+  freelaUserId String @map("freela_user_id")
+  freela     FreelaProfile @relation(fields: [freelaUserId], references: [userId], onDelete: Cascade)
+
+  fileKey    String   @map("file_key")
+  fileName   String   @map("file_name")
+  mimeType   String   @map("mime_type")
+  fileSize   Int      @map("file_size")
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
+
+  @@index([freelaUserId])
+  @@map("freela_resumes")
+}
+
+model CompanyMember {
+  id            String            @id @default(uuid())
+  companyUserId String            @map("company_user_id")
+  company       User              @relation("CompanyMemberCompany", fields: [companyUserId], references: [id], onDelete: Cascade)
+
+  memberUserId  String            @map("member_user_id")
+  member        User              @relation("CompanyMemberUser", fields: [memberUserId], references: [id], onDelete: Cascade)
+
+  permission    CompanyPermission
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([companyUserId, memberUserId])
+  @@index([companyUserId])
+  @@index([memberUserId])
+  @@map("company_members")
+}
+
+model ServicePost {
+  id          String   @id @default(uuid())
+  freelaUserId String  @map("freela_user_id")
+  freela      FreelaProfile @relation(fields: [freelaUserId], references: [userId], onDelete: Cascade)
+
+  titulo      String   @map("titulo")
+  descricao   String   @map("descricao")
+  status      String   @default("ATIVO")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([freelaUserId])
+  @@map("service_posts")
+}
+

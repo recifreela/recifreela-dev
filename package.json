@@ -1,0 +1,21 @@
+{
+  "name": "recifreela",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n WEB,API -c blue,magenta \"npm run dev --workspace apps/web\" \"npm run start:dev --workspace apps/api\"",
+    "lint": "npm run lint --workspace apps/web && npm run lint --workspace apps/api",
+    "typecheck": "npm run typecheck --workspace apps/web && npm run typecheck --workspace apps/api",
+    "test": "npm run test --workspace apps/web && npm run test --workspace apps/api",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate --workspace apps/api",
+    "db:seed": "npm run db:seed --workspace apps/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
+
