@@ -69,9 +69,8 @@ Objetivo do M0: deixar o repositório pronto para qualquer aluno clonar, configu
 **T0.1 — Estrutura do monorepo**
 
 - Checks
-  - existe `pnpm-workspace.yaml` com `apps/*`
   - existem `apps/web` (Next.js) e `apps/api` (NestJS)
-  - scripts raiz para rodar tudo: `pnpm dev`, `pnpm lint`, `pnpm typecheck`, `pnpm test`
+  - scripts raiz para rodar tudo: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm run test`
 
 **T0.2 — Convenções de pastas e nomes**
 
@@ -94,7 +93,7 @@ Objetivo do M0: deixar o repositório pronto para qualquer aluno clonar, configu
 - Checks
   - Prisma instalado e configurado no `apps/api`
   - existe `schema.prisma` versionado
-  - existe comando de migration (ex.: `pnpm --filter ./apps/api db:migrate`)
+  - existe comando de migration (ex.: `npm run db:migrate --workspace apps/api`)
   - ao rodar migration com Postgres local, tabelas iniciais são criadas
 
 **T0.5 — Schema inicial (tabelas mínimas)**
@@ -130,21 +129,23 @@ Objetivo do M0: deixar o repositório pronto para qualquer aluno clonar, configu
   - pipeline (GitHub Actions) roda `lint`, `typecheck`, `test` em PR para `develop`
   - regra sugerida: PR só entra em `develop` com checks verdes
 
-### M1 — Autenticação (com esqueci senha)
+### M1 — Autenticação + cadastro base (com esqueci senha)
 
 **T1.1 — Cadastro (freela e empresa)**
 
 - Checks
-  - endpoint `POST /auth/register` aceita role + dados mínimos do perfil do tipo
+  - endpoint `POST /auth/register` aceita role + dados mínimos do perfil do tipo + endereço
   - validações: e-mail único; CPF/CNPJ único; role obrigatória
   - cria `users` + `freela_profiles` OU `empresa_profiles` no mesmo fluxo (transação)
+  - cria `addresses` associado ao usuário (mínimo: `cep`, `cidade`, `uf`, `bairro`, `logradouro`, `numero`)
+  - normaliza CPF/CNPJ (somente dígitos) e e-mail (lowercase)
 
 **T1.2 — Login e sessão**
 
 - Checks
   - endpoint `POST /auth/login` valida credenciais
   - tokens (access/refresh) ou sessão são persistidos com segurança (cookie HTTP-only recomendado)
-  - `GET /me` retorna usuário + role
+  - `GET /me` retorna usuário + role para o frontend montar menu por role
 
 **T1.3 — Logout**
 
@@ -172,7 +173,9 @@ Objetivo do M0: deixar o repositório pronto para qualquer aluno clonar, configu
   - rotas de empresa bloqueiam freelas e vice-versa
   - testes cobrindo pelo menos 1 caso permitido e 1 negado
 
-### M2 — Perfil completo + endereço + geolocalização
+### M2 — Endereço + geolocalização (distância em modo presencial)
+
+Objetivo do M2: quando um job for `PRESENCIAL`, mostrar a distância aproximada entre freela ↔ empresa nos feeds de busca (para ambos os lados), usando endereço + geocode.
 
 **T2.1 — Completar perfil do Freela**
 
@@ -199,11 +202,18 @@ Objetivo do M0: deixar o repositório pronto para qualquer aluno clonar, configu
   - cache: reusar geocode se endereço não mudou
   - se geocoding falhar, sistema continua funcionando (sem distância), mas registra estado no banco
 
-**T2.5 — Query por distância (presencial)**
+**T2.5 — Distância no feed (presencial)**
 
 - Checks
-  - endpoint de feed aceita filtro `raio_km` (quando aplicável)
-  - resultado inclui distância aproximada quando houver `geog_point` nos dois lados
+  - feed de jobs inclui `distance_km` quando:
+    - usuário logado é freela, tem `lat/lng` no seu endereço e
+    - job tem `modelo_trabalho = PRESENCIAL` e a empresa tem `lat/lng`
+  - feed de freelas (visão empresa) inclui `distance_km` quando:
+    - empresa logada tem `lat/lng` e
+    - freela listado tem `lat/lng`
+  - filtros por distância:
+    - `raio_km` limita resultados quando houver `lat/lng` disponível
+  - se algum lado não tiver `lat/lng`, retornar sem distância e sem filtrar por raio
 
 **T2.6 — Links sociais e currículo (freela)**
 
