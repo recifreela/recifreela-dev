@@ -1,6 +1,6 @@
 export enum UserRole {
-  FREELA = 'user-freela',
-  EMPRESA = 'user-empresa',
+  FREELA = 'user_freela',   
+  EMPRESA = 'user_empresa', 
 }
 
 export enum WorkModel {
