@@ -1,4 +1,5 @@
 import { BadRequestException, Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { UserRole } from './common/enums/auth.enum';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginRequestDto } from './dto/login-request.dto';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
@@ -28,9 +29,16 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  login(@Body() body: LoginRequestDto): any {
+  login(@Body() body: LoginRequestDto): AuthResponseDto {
     
-    return { error: 'NOT_IMPLEMENTED', message: 'Aguardando implementação do Service' };
+    // Por enquanto, como não temos o Service/Banco, retornamos um "Mock" (dados fictícios)
+    // para provar que o contrato (DTO) está funcionando.
+    return {
+      user_id: 'mock-id-123',
+      email: body.email,
+      role: UserRole.FREELA, // ou empresa, apenas para satisfazer o contrato
+      access_token: 'token-temporario-de-teste',
+    };
   }
 
   @Post('forgot-password')
