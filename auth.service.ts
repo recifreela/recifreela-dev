@@ -25,7 +25,7 @@ export class AuthService {
       dto.email.toLowerCase();
 
     const user =
-      await this.prisma.users.findUnique({
+      await this.prisma.user.findUnique({
         where: { email },
       });
 
@@ -38,7 +38,7 @@ export class AuthService {
     const passwordMatch =
       await bcrypt.compare(
         dto.password,
-        user.password_hash,
+        user.passwordHash,
       );
 
     if (!passwordMatch) {
