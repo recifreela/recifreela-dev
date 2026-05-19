@@ -17,6 +17,7 @@ type FormData = {
   cnpj?: string;
   phone: string;
 
+  bairro: string;
   cep: string;
   street: string;
   number: string;
@@ -35,11 +36,11 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<FormData>();
 
-  const role = watch("role", "freela");
+  const role = watch("role", "user-freela");
 
   async function onSubmit(data: FormData) {
     if (data.password !== data.confirmPassword) {
-      setMessage("As senhas não coincidem");
+      setMessage("As senhas são diferentes");
       return;
     }
 
@@ -48,27 +49,37 @@ export default function RegisterPage() {
       setMessage("");
 
       const payload = {
-        role: data.role,
-        email: data.email,
-        password: data.password,
+          role: data.role,
+          email: data.email,
+          password: data.password,
+          passwordConfirm: data.confirmPassword,
+          nome: data.name,
 
-        profile: {
-          name: data.name,
-          cpf: data.cpf?.replace(/\D/g, ""),
-          cnpj: data.cnpj?.replace(/\D/g, ""),
-          phone: data.phone,
-        },
+          cpf: data.cpf?.replace(
+            /\D/g,
+            ""
+          ),
 
-        address: {
-          cep: data.cep.replace(/\D/g, ""),
-          street: data.street,
-          number: data.number,
-          city: data.city,
-          state: data.state,
-        },
-      };
+          cnpj: data.cnpj?.replace(
+            /\D/g,
+            ""
+          ),
 
-      await axios.post("http://localhost:8080/auth/register", payload);
+          address: {
+            cep: data.cep.replace(
+              /\D/g,
+              ""
+            ),
+
+          logradouro: data.street,
+          numero: data.number,
+          cidade: data.city,
+          uf: data.state,
+          bairro: data.bairro,
+  },
+};
+//da um vista depois no UF e Estado
+      await axios.post( "http://localhost:3001/auth/register", payload);
 
       setMessage("Cadastro realizado com sucesso!");
 
@@ -83,49 +94,51 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
-
+  //mudei linha 88
   return (
-    <div className="min-h-screen bg-black-100 flex justify-center items-center p-8">
+    <div className="min-h-screen bg-[#f1f7f8] flex justify-center items-center p-8">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-black p-8 rounded-xl shadow-lg w-full max-w-3xl"
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-3xl border border-[#a4b8c5] space-y-2"
       >
-        <h1 className="text-3xl font-bold mb-6">Cadastro</h1>
+        <h1 className="text-3xl font-bold mb-6 text-[#2b4466]">Cadastro</h1>
 
         {/* ROLE */}
         <div className="mb-6">
-          <label className="font-semibold">Tipo de conta</label>
+          <label className="font-semibold text-[#2b4466] ">Tipo de conta</label>
 
           <div className="flex gap-4 mt-2">
             <label>
               <input
                 type="radio"
-                value="freela"
+                value="user-freela"
+                className="accent-[#2b4466] w-4 h-4"
                 {...register("role")}
                 defaultChecked
               />
-              <span className="ml-2">Freela</span>
+              <span className="ml-2 text-[#2b4466] font-medium">Freela</span>
             </label>
 
             <label>
               <input
                 type="radio"
-                value="empresa"
+                value="user-empresa"
+                className="accent-[#2b4466] w-4 h-4"
                 {...register("role")}
               />
-              <span className="ml-2">Empresa</span>
+              <span className="ml-2 text-[#2b4466] font-medium">Empresa</span>
             </label>
           </div>
         </div>
 
         {/* DADOS DE ACESSO */}
-        <h2 className="text-xl font-bold mb-4">Dados de acesso</h2>
+        <h2 className="text-xl font-bold mb-4 text-[#2b4466]">Dados de acesso</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <input
               placeholder="Email"
-              className="border p-3 rounded w-full"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
               {...register("email", {
                 required: "Email obrigatório",
               })}
@@ -142,7 +155,7 @@ export default function RegisterPage() {
             <input
               type="password"
               placeholder="Senha"
-              className="border p-3 rounded w-full"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
               {...register("password", {
                 required: "Senha obrigatória",
               })}
@@ -153,7 +166,7 @@ export default function RegisterPage() {
             <input
               type="password"
               placeholder="Confirmar senha"
-              className="border p-3 rounded w-full"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
               {...register("confirmPassword", {
                 required: "Confirme sua senha",
               })}
@@ -162,12 +175,12 @@ export default function RegisterPage() {
         </div>
 
         {/* PERFIL */}
-        <h2 className="text-xl font-bold mb-4">Dados do perfil</h2>
+        <h2 className="text-xl font-bold mb-4 text-[#2b4466]">Dados do perfil</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <input
             placeholder="Nome"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("name", {
               required: "Nome obrigatório",
             })}
@@ -175,26 +188,26 @@ export default function RegisterPage() {
 
           <input
             placeholder="Telefone"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("phone", {
               required: "Telefone obrigatório",
             })}
           />
 
-          {role === "freela" && (
+          {role === "user-freela" && (
             <input
                 placeholder="CPF"
-                className="border p-3 rounded w-full"
+                className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
                 {...register("cpf", {
                     required: "CPF obrigatório",
                 })}
             />
           )}
 
-          {role === "empresa" && (
+          {role === "user-empresa" && (
             <input
                 placeholder="CNPJ"
-                className="border p-3 rounded w-full"
+                className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
               {...register("cnpj", {
                 required: "CNPJ obrigatório",
               })}
@@ -203,12 +216,12 @@ export default function RegisterPage() {
         </div>
 
         {/* ENDEREÇO */}
-        <h2 className="text-xl font-bold mb-4">Endereço</h2>
+        <h2 className="text-xl font-bold mb-4 text-[#2b4466]">Endereço</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <input 
                 placeholder="CEP"
-                className="border p-3 rounded w-full"            
+                className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"            
             {...register("cep", {
               required: "CEP obrigatório",
             })}
@@ -216,7 +229,7 @@ export default function RegisterPage() {
             
           <input
             placeholder="Rua"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("street", {
               required: "Rua obrigatória",
             })}
@@ -224,7 +237,7 @@ export default function RegisterPage() {
 
           <input
             placeholder="Número"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("number", {
               required: "Número obrigatório",
             })}
@@ -232,7 +245,7 @@ export default function RegisterPage() {
 
           <input
             placeholder="Cidade"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("city", {
               required: "Cidade obrigatória",
             })}
@@ -240,16 +253,24 @@ export default function RegisterPage() {
 
           <input
             placeholder="Estado"
-            className="border p-3 rounded w-full"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("state", {
               required: "Estado obrigatório",
+            })}
+          />
+
+          <input
+            placeholder="Bairro"
+            className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466]"
+            {...register("bairro", {
+            required: "Bairro obrigatório",
             })}
           />
         </div>
 
         {/* MENSAGENS */}
         {message && (
-          <div className="mb-4 text-center font-semibold text-red-500">
+          <div className="mb-4 text-center font-semibold text-[#986f7b]">
             {message}
           </div>
         )}
@@ -258,7 +279,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full p-3 rounded font-bold"
+          className="bg-[#d5ac89] hover:bg-[#c89a72] text-[#2b4466] w-full p-3 rounded-lg font-bold transition duration-300 shadow-md"
         >
           {loading ? "Cadastrando..." : "Cadastrar"}
         </button>
