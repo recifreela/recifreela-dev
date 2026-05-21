@@ -1,17 +1,18 @@
 import { BadRequestException, Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { UserRole } from './common/enums/auth.enum';
 import { RegisterRequestDto } from './dto/register-request.dto';
-import { LoginRequestDto } from './dto/login-request.dto';
+
+import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
-
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private authService: AuthService) {}
+
   @Post('register')
   @HttpCode(201) 
-  register(@Body() body: RegisterRequestDto) {
-    
+  async register(@Body() body: RegisterRequestDto) {
     if (body.password !== body.passwordConfirm) {
       throw new BadRequestException({
         code: 'PASSWORDS_DONT_MATCH',
@@ -20,25 +21,13 @@ export class AuthController {
       });
     }
 
-    
-    return {
-      message: 'Dados validados com sucesso. Contrato alinhado com o Banco.',
-      user: { email: body.email, role: body.role },
-    };
+    return this.authService.register(body);
   }
 
   @Post('login')
   @HttpCode(200)
-  login(@Body() body: LoginRequestDto): AuthResponseDto {
-    
-    // Por enquanto, como não temos o Service/Banco, retornamos um "Mock" (dados fictícios)
-    // para provar que o contrato (DTO) está funcionando.
-    return {
-      user_id: 'mock-id-123',
-      email: body.email,
-      role: UserRole.FREELA, // ou empresa, apenas para satisfazer o contrato
-      access_token: 'token-temporario-de-teste',
-    };
+  async login(@Body() body: LoginDto): Promise<AuthResponseDto> {
+    return this.authService.login(body);
   }
 
   @Post('forgot-password')
