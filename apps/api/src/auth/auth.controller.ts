@@ -1,36 +1,37 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Controller, Post, Body } from "@nestjs/common";
+import { Res } from "@nestjs/common";
+import type { Response } from "express";
+import { AuthService } from "./auth.service";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
 
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
-  @Post('register')
-  @HttpCode(501)
-  register(@Body() body: unknown) {
-    return { error: 'NOT_IMPLEMENTED', endpoint: 'POST /auth/register', body };
-  }
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  @HttpCode(501)
-  login(@Body() body: unknown) {
-    return { error: 'NOT_IMPLEMENTED', endpoint: 'POST /auth/login', body };
-  }
+    @Post("login")
+    async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+    ) {
+  const result = await this.authService.login(dto);
 
-  @Post('forgot-password')
-  @HttpCode(501)
-  forgotPassword(@Body() body: unknown) {
+  res.cookie("access_token", result.token, {
+    httpOnly: true,
+    secure: false, // true em produção
+    sameSite: "lax",
+    maxAge: 1000 * 60 * 60 * 24, // 1 dia
+  });
+
     return {
-      error: 'NOT_IMPLEMENTED',
-      endpoint: 'POST /auth/forgot-password',
-      body,
-    };
-  }
+        id: result.id,
+        email: result.email,
+        role: result.role,
+        };
+    }
 
-  @Post('reset-password')
-  @HttpCode(501)
-  resetPassword(@Body() body: unknown) {
-    return {
-      error: 'NOT_IMPLEMENTED',
-      endpoint: 'POST /auth/reset-password',
-      body,
-    };
+  @Post("register")
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 }
