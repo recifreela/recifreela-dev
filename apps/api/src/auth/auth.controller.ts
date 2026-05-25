@@ -1,7 +1,15 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 
+import { AuthService } from './auth.service';
+
+import { LoginDto } from './dto/login.dto';
+
 @Controller('auth')
 export class AuthController {
+  constructor(
+  private authService: AuthService,
+  ) {}
+
   @Post('register')
   @HttpCode(501)
   register(@Body() body: unknown) {
@@ -9,9 +17,8 @@ export class AuthController {
   }
 
   @Post('login')
-  @HttpCode(501)
-  login(@Body() body: unknown) {
-    return { error: 'NOT_IMPLEMENTED', endpoint: 'POST /auth/login', body };
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 
   @Post('forgot-password')
