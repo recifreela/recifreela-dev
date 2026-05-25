@@ -32,40 +32,11 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,//mudei
+    watch,    
     formState: { errors },
   } = useForm<FormData>();
 
-  const role = watch("role", "user-freela");
-
-  async function handleCepChange(
-  event: React.ChangeEvent<HTMLInputElement>
-  ) {
-  const cep = event.target.value.replace(/\D/g, "");
-
-  if (cep.length !== 8) return;
-
-  try {
-    const response = await axios.get(
-      `https://viacep.com.br/ws/${cep}/json/`
-    );
-
-    if (response.data.erro) {
-      setMessage("CEP inválido");
-      return;
-    }
-
-    setValue("street", response.data.logradouro);
-    setValue("bairro", response.data.bairro);
-    setValue("city", response.data.localidade);
-    setValue("state", response.data.uf);
-
-    setMessage("");
-  } catch {
-    setMessage("Erro ao buscar CEP");
-  }
-}
+  const role = watch("role", "user-freela");  
 
   async function onSubmit(data: FormData) {
     if (data.password !== data.confirmPassword) {
@@ -253,10 +224,9 @@ export default function RegisterPage() {
                 className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"            
             {...register("cep", {
               required: "CEP obrigatório",
-              onChange: handleCepChange,
             })}            
           />
-            
+                      
           <input
             placeholder="Rua"
             className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
