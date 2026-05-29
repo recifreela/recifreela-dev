@@ -11,10 +11,12 @@ type FormData = {
   email: string;
   password: string;
   confirmPassword: string;
-
+  
   name: string;
   cpf?: string;
   cnpj?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
   phone: string;
 
   bairro: string;
@@ -36,7 +38,7 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<FormData>();
 
-  const role = watch("role", "user-freela");  
+  const role = watch("role", "user_freela");  
 
   async function onSubmit(data: FormData) {
     if (data.password !== data.confirmPassword) {
@@ -53,7 +55,9 @@ export default function RegisterPage() {
           email: data.email,
           password: data.password,
           passwordConfirm: data.confirmPassword,
-          nome: data.name,
+          nome: role === "user_freela" ? data.name : undefined,
+          razaoSocial: role === "user_empresa" ? data.razaoSocial : undefined,
+          nomeFantasia: role === "user_empresa" ? data.nomeFantasia: undefined,
 
           cpf: data.cpf?.replace(
             /\D/g,
@@ -78,8 +82,9 @@ export default function RegisterPage() {
           bairro: data.bairro,
   },
 };
-//da um vista depois no UF e Estado
-      await axios.post( "http://localhost:3001/auth/register", payload);
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+      await axios.post(`${apiUrl}/auth/register`, payload);
 
       setMessage("Cadastro realizado com sucesso!");
 
@@ -94,7 +99,7 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
-  //mudei linha 88
+  
   return (
     <div className="min-h-screen bg-[#f1f7f8] flex justify-center items-center p-8">
       <form
@@ -111,7 +116,7 @@ export default function RegisterPage() {
             <label>
               <input
                 type="radio"
-                value="user-freela"
+                value="user_freela"
                 className="accent-[#2b4466] w-4 h-4"
                 {...register("role")}
                 defaultChecked
@@ -122,7 +127,7 @@ export default function RegisterPage() {
             <label>
               <input
                 type="radio"
-                value="user-empresa"
+                value="user_empresa"
                 className="accent-[#2b4466] w-4 h-4"
                 {...register("role")}
               />
@@ -178,13 +183,15 @@ export default function RegisterPage() {
         <h2 className="text-xl font-bold mb-4 text-[#2b4466]">Dados do perfil</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <input
+          {role === "user_freela" && (
+            <input
             placeholder="Nome"
             className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
             {...register("name", {
-              required: "Nome obrigatório",
+            required: "Nome obrigatório",
             })}
-          />
+            />
+          )}
 
           <input
             placeholder="Telefone"
@@ -194,7 +201,7 @@ export default function RegisterPage() {
             })}
           />
 
-          {role === "user-freela" && (
+          {role === "user_freela" && (
             <input
                 placeholder="CPF"
                 className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
@@ -204,15 +211,29 @@ export default function RegisterPage() {
             />
           )}
 
-          {role === "user-empresa" && (
+          {role === "user_empresa" && (
+          <>
             <input
-                placeholder="CNPJ"
-                className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
+              placeholder="CNPJ"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
               {...register("cnpj", {
                 required: "CNPJ obrigatório",
               })}
-            />            
-          )}
+            />
+
+            <input
+              placeholder="Razão Social"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
+              {...register("razaoSocial")}
+            />
+
+            <input
+              placeholder="Nome Fantasia"
+              className="bg-[#f1f7f8] border border-[#04b8c5] p-3 rounded-lg w-full outline-none text-[#2b4466] focus:ring-2 focus:ring-[#2b4466] focus:border-[#2b4466] transition"
+              {...register("nomeFantasia")}
+            />
+          </>
+        )}
         </div>
 
         {/* ENDEREÇO */}
