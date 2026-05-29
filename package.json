@@ -15,7 +15,11 @@
     "db:seed": "npm run db:seed --workspace apps/api"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "@nestjs/jwt": "^11.0.2",
+    "bcrypt": "^6.0.0"
   }
 }
-
